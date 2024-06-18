@@ -3,15 +3,15 @@ include_once "DB.php";
 class Mesa{
     public $id;
     public $codigoMesa;    
-    public $estado;
+    public $estado=1;//0=cerrada, 1=cliente esperando pedido, 2=Cliente comiendo, 3=cliente pagando
 
 
     public function crearMesa()
     {
-        $objAccesoDatos = DB::obtenerInstancia();
-         // Genera un código alfanumérico de 5 caracteres
+        $objDataBase = DB::obtenerInstancia();
+
         $codigoAlfanumerico = Mesa::generarCodigo(5);
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO mesa (codigoMesa, estado) 
+        $consulta = $objDataBase->prepararConsulta("INSERT INTO mesa (codigoMesa, estado) 
         VALUES (:codigoMesa, :estado)");           
         $consulta->bindValue(':codigoMesa', $this->codigoMesa = $codigoAlfanumerico);
 

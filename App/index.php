@@ -21,4 +21,3 @@ $app->get("/test",function ($request, $response, array $args)
 
 });
 $app->run();
-?>

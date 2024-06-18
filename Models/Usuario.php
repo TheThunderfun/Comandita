@@ -9,8 +9,8 @@ Class Usuario {
 
     public function crearUsuario()
     {
-        $objAccesoDatos = DB::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuario (nombre, tipo,codigo
+        $objDataBase = DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("INSERT INTO usuario (nombre, tipo,codigo
          fechaAlta)
          VALUES (:nombre, :clave, :tipoUsuario, :codigo, :fechaAlta)");
        

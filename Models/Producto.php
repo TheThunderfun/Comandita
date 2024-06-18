@@ -8,12 +8,11 @@ Class Producto{
     public $precio;
     public $tiempoPreparacion;
 
-
+    
     public function crearProducto()
         {
-            $estado = 1;
-            $objAccesoDatos = DB::obtenerInstancia();
-            $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO producto 
+            $objDataBase = DB::obtenerInstancia();
+            $consulta = $objDataBase->prepararConsulta("INSERT INTO producto 
             (sector, nombre, precio, tiempoPreparacion,) VALUES (:sector, :nombre, :precio, :tiempoPreparacion)");
             
             $consulta->bindValue(':sector', $this->sector, PDO::PARAM_STR);
@@ -25,5 +24,19 @@ Class Producto{
             $consulta->execute();    
 
         }
+
+
+        public static function obtenerTodos() {
+            try {
+                $objDataBase = DB::obtenerInstancia();
+                $consulta = $objDataBase->prepararConsulta("SELECT * FROM producto");
+                $consulta->execute();
+                return $consulta->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                echo "Error al obtener productos: " . $e->getMessage();
+                return []; 
+            }
+        }
+    
 
 }
