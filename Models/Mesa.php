@@ -1,25 +1,33 @@
 <?php 
-include_once "DB.php";
+include_once '../DataBase/DB.php';
 class Mesa{
     public $id;
     public $codigoMesa;    
-    public $estado=1;//0=cerrada, 1=cliente esperando pedido, 2=Cliente comiendo, 3=cliente pagando
+    public $estado;//cerrada, cliente esperando pedido, Cliente comiendo, cliente pagando
+    public $fechaAlta;
 
 
-    public function crearMesa()
+    public function CrearMesa()
     {
         $objDataBase = DB::obtenerInstancia();
+        $codigoAlfanumerico = Mesa::GenerarCodigo(5);
 
-        $codigoAlfanumerico = Mesa::generarCodigo(5);
-        $consulta = $objDataBase->prepararConsulta("INSERT INTO mesa (codigoMesa, estado) 
-        VALUES (:codigoMesa, :estado)");           
-        $consulta->bindValue(':codigoMesa', $this->codigoMesa = $codigoAlfanumerico);
+
+        $this->codigoMesa = $codigoAlfanumerico;
+
+        $consulta = $objDataBase->prepararConsulta("INSERT INTO mesa (codigoMesa, estado, fechaAlta) 
+        VALUES (:codigoMesa, :estado,:fechaAlta)");           
+        $consulta->bindValue(':codigoMesa', $this->codigoMesa);
+        $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
+        $consulta->bindValue(':fechaAlta', $this->fechaAlta, PDO::PARAM_STR);
 
         $consulta->execute();
+
+        return $objDataBase->UltimoId();
         
     }
 
-    public function GenerarCodigo($length){
+    public static function GenerarCodigo($length){
 
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
@@ -32,7 +40,23 @@ class Mesa{
     
         return $randomString;
     }
-    
+    public static function obtenerTodos() {
+        $objDataBase = DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("SELECT * FROM mesa");
+        $consulta->execute();
+        return $consulta->fetchAll(PDO::FETCH_CLASS,'Mesa');
+    }
+
+    public static function ListarTodos(){
+        $mesas=Mesa::obtenerTodos();
+
+        foreach($mesas as $mesa){
+            echo "ID: " . $mesa->id . "<br>";
+            echo "Codigo de mesa: " . $mesa->codigoMesa . "<br>";
+            echo "Fecha de alta: " . $mesa->fechaAlta . "<br>";
+            echo "Estado: " . $mesa->estado . "<br>";
+        }
+    }
 }
 
 
