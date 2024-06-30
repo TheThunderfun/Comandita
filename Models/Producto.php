@@ -19,7 +19,7 @@ Class Producto{
             $consulta->bindValue(':sector', $this->sector, PDO::PARAM_STR);
             $consulta->bindValue(':nombre', $this->nombre, PDO::PARAM_STR);
             $consulta->bindValue(':precio', $this->precio, PDO::PARAM_STR);
-            $consulta->bindValue(':stock', $this->precio, PDO::PARAM_STR);
+            $consulta->bindValue(':stock', $this->stock, PDO::PARAM_STR);
             $consulta->bindValue(':tiempoPreparacion', $this->tiempoPreparacion, PDO::PARAM_STR);
             $consulta->bindValue(':fechaAlta', $this->fechaAlta, PDO::PARAM_STR);
             

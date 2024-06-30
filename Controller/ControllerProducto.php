@@ -10,6 +10,7 @@ Class ControllerProducto{
         $producto->sector = $datos['sector'];
         $producto->nombre = $datos['nombre'];
         $producto->precio = $datos['precio'];
+        $producto->stock=$datos['stock'];
         $producto->tiempoPreparacion = $datos['tiempoPreparacion'];
         $producto->fechaAlta = date('Y-m-d'); 
     

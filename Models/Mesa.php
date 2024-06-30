@@ -57,6 +57,23 @@ class Mesa{
             echo "Estado: " . $mesa->estado . "<br>";
         }
     }
+
+    public static function CambiarEstadoMesa($idMesa,$estado){
+        $objDataBase = DB::obtenerInstancia();
+
+        $consulta_id_producto = $objDataBase->prepararConsulta("UPDATE mesa SET estado = :estado  WHERE id = :idMesa");
+        $consulta_id_producto->bindParam(':idMesa', $idMesa, PDO::PARAM_STR);
+        $consulta_id_producto->bindParam(':estado', $estado, PDO::PARAM_STR);
+        $consulta_id_producto->execute();
+    }
+
+    public static function ObtenerEstadoMesaPorId($idMesa){
+        $objDataBase = DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("SELECT estado FROM mesa WHERE id = :idMesa");
+        $consulta->bindParam(':idMesa', $idMesa, PDO::PARAM_INT);
+        $consulta->execute();
+        return $consulta->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 
