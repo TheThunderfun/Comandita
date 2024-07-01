@@ -29,11 +29,11 @@ $app->addErrorMiddleware(true, true, true);
 $app->addBodyParsingMiddleware();
 
 $app->post('/login[/]',\ControllerUsuario::class . ':Login');
-
+$app->post('/pagar[/]',\ControllerPedido::class . ':Pagar');
 $app->group('/usuario',function(RouteCollectorProxy $group){
     $group->post('[/]',\ControllerUsuario::class . ':CargarUno');
     $group->post('/modificar',\ControllerUsuario::class . ':ModificarUsuario');
-    $group->delete('/borrar/{id}',\ControllerUsuario::class . ':BajaUsuario');
+    $group->delete('/borrar/{dni}',\ControllerUsuario::class . ':BajaUsuario');
 })->add(\AuthMiddleware::class . ':verificarToken')
 ->add(\AuthMiddleware::class . ':verificarRolSocio');
 
@@ -44,6 +44,8 @@ $app->group('/producto',function(RouteCollectorProxy $group){
 
 $app->group('/mesa',function(RouteCollectorProxy $group){
     $group->post('[/]',\ControllerMesa::class . ':CargarUno');
+    $group->get('/estado',\ControllerMesa::class . ':ListarMesas');
+    $group->post('/cerrar',\ControllerMesa::class . ':ModificarMesa');
 })->add(\AuthMiddleware::class . ':verificarToken')
 ->add(\AuthMiddleware::class . ':verificarRolSocio');
 
@@ -51,9 +53,17 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
     $group->post('[/]',\ControllerPedido::class . ':CargarUno');
     $group->post('/cliente',\ControllerCliente::class . ':CargarUno');
     $group->post('/productos',\ControllerProductosPedido::class . ':CargarUno');
+    $group->get('/paraServir',\ControllerProductosPedido::class . ':ListarPedidosParaServir');
+    $group->post('/servir',\ControllerPedido::class . ':Servir');
+    $group->post('/cobrar',\ControllerPedido::class . ':Cobrar');
+    
 })->add(\AuthMiddleware::class . ':verificarToken')
     ->add(\AuthMiddleware::class . ':verificarRolMozo');
-    
+
+    $app->get('/encuesta/mejoresComentarios',\ControllerPedido::class . ':TraerMejoresComentarios')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
+    $app->get('/mesaMasUsada',\ControllerPedido::class . ':MesaMasUsada')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
     
     $app->group('/pedido/listar',function(RouteCollectorProxy $group){
         $group->get('/cervecero/{sector}',\ControllerProductosPedido::class . ':ListarPorSector')  ->add(\AuthMiddleware::class . ':verificarToken')
@@ -79,5 +89,14 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
     })->add(\AuthMiddleware::class . ':verificarToken')
     ->add(\AuthMiddleware::class . ':verificarRolSocio');
 
+    
+    $app->group('/producto/pendiente',function(RouteCollectorProxy $group){
+        $group->get('/cervecero/{sector}',\ControllerProductosPedido::class . ':ListarPorSectorYEstado')->add(\AuthMiddleware::class . ':verificarToken')
+                                                                                              ->add(\AuthMiddleware::class . ':verificarRolCervecero');
+        $group->get('/cocinero/{sector}',\ControllerProductosPedido::class . ':ListarPorSectorYEstado')->add(\AuthMiddleware::class . ':verificarToken')
+                                                                                             ->add(\AuthMiddleware::class . ':verificarRolCocinero');
+       $group->get('/bartender/{sector}',\ControllerProductosPedido::class . ':ListarPorSectorYEstado')->add(\AuthMiddleware::class . ':verificarToken')
+                                                                                             ->add(\AuthMiddleware::class . ':verificarRolBartender');
+    });
 
 $app->run();

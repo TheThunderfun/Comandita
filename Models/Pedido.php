@@ -86,6 +86,82 @@ Class Pedido{
             return $consulta->fetchAll(PDO::FETCH_CLASS,"Pedido");
         }
 
+        public static function CambiarEstadoMesaYpedido($a, $b) {
+            $objDataBase = DB::obtenerInstancia();
+    
+            try {
+
+                $consultaMesa = $objDataBase->prepararConsulta("UPDATE mesa SET estado = :estado WHERE codigoMesa = :codigoMesa");
+                $consultaMesa->bindParam(':codigoMesa', $a, PDO::PARAM_STR);
+                $consultaMesa->bindParam(':estado', $b, PDO::PARAM_STR);
+                $consultaMesa->execute();
+        
+                $consultaPedido = $objDataBase->prepararConsulta("UPDATE pedido SET estado = :estado WHERE mesa = :codigoMesa");
+                $consultaPedido->bindParam(':codigoMesa', $a, PDO::PARAM_STR);
+                $consultaPedido->bindParam(':estado', $b, PDO::PARAM_STR);
+                $consultaPedido->execute();
+                
+
+            } catch (PDOException $e) {
+                echo("Error al actualizar estado de mesa y pedido: " . $e->getMessage());
+            }
+        }
+
+        public static function CambiarEstadoMesa($mesa,$estado){
+            var_dump($mesa);
+            var_dump($estado);
+            $objDataBase = DB::obtenerInstancia();
+            $consultaMesa = $objDataBase->prepararConsulta("UPDATE mesa SET estado = :estado WHERE codigoMesa = :codigoMesa");
+            $consultaMesa->bindParam(':codigoMesa', $mesa, PDO::PARAM_STR);
+            $consultaMesa->bindParam(':estado', $estado, PDO::PARAM_STR);
+            $consultaMesa->execute();
+        }
+        public static function CalcularValorTotalPorMesa($codigoMesa) {
+            $objDataBase = DB::obtenerInstancia();
+            
+            $consulta = $objDataBase->prepararConsulta(
+                "SELECT SUM(pp.cantidad * p.precio) AS valor_total 
+                 FROM pedido pe 
+                 JOIN productos_pedidos pp ON pe.id = pp.pedido_id 
+                 JOIN producto p ON pp.producto = p.nombre 
+                 WHERE pe.mesa = :codigoMesa"
+            );
+            
+            $consulta->bindParam(':codigoMesa', $codigoMesa, PDO::PARAM_STR);
+            $consulta->execute();
+            
+            $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+            
+            return $resultado['valor_total'] ? $resultado['valor_total'] : 0;
+        }
+
+        public static function obtenerIdCliente($mesa){
+            $objDataBase = DB::obtenerInstancia();
+            $consulta = $objDataBase->prepararConsulta("SELECT * FROM pedido WHERE mesa=:mesa");
+            $consulta->bindParam(':mesa', $mesa, PDO::PARAM_STR);
+            $consulta->execute();
+            $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+
+            return $resultado['cliente'];
+        }
+
+
+        public static function MesaUsada() {
+            $objDataBase = DB::obtenerInstancia();
+            
+            // Consulta SQL para obtener la mesa más usada
+            $consulta = $objDataBase->prepararConsulta("SELECT mesa, COUNT(*) as cantidad_pedidos
+                                                        FROM pedido
+                                                        GROUP BY mesa
+                                                        ORDER BY cantidad_pedidos DESC
+                                                        LIMIT 1");
+            
+            $consulta->execute();
+            $mesaMasUsada = $consulta->fetch(PDO::FETCH_ASSOC);
+            
+            return $mesaMasUsada;
+        }
+
         
 }
 

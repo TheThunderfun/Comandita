@@ -70,6 +70,14 @@ class ProductosPedido {
         }
     }
 
+    public static function functionActualizarEstado($idPedido,$estado){
+        $objDataBase = DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("UPDATE productos_pedidos SET estado = :estado WHERE id = :idPedido");
+        $consulta->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+        $consulta->bindParam(':estado', $estado, PDO::PARAM_INT);
+        $consulta->execute();
+    }
+
     public static function ListarPorSector($sector){
         $objDataBase = DB::obtenerInstancia();
         $consulta = $objDataBase->prepararConsulta("SELECT id, producto, sector, cantidad, tiempoEstimado FROM productos_Pedidos WHERE sector = :sector");
@@ -79,6 +87,30 @@ class ProductosPedido {
         //var_dump($pedidos);
         foreach ($pedidos as $pedido) {
             echo "ID: " . $pedido->id . "<br>";
+            echo "Producto: " . $pedido->producto . "<br>";
+            echo "Sector: " . $pedido->sector . "<br>";
+            echo "Stock: " . $pedido->cantidad . "<br>";
+            echo "Tiempo de preparacion en minutos: " . $pedido->tiempoEstimado . "<br>";
+            }
+    }
+
+    public static function ListarPorSectorYEstado($sector,$estado){
+        $objDataBase = DB::obtenerInstancia();
+        if($sector===null){
+            $consulta = $objDataBase->prepararConsulta("SELECT id,pedido_id ,producto, sector, cantidad, tiempoEstimado FROM productos_Pedidos WHERE estado= :estado");
+            $consulta->bindParam(':estado',$estado, PDO::PARAM_STR);
+            $consulta->execute();
+        }else{
+            $consulta = $objDataBase->prepararConsulta("SELECT id, producto, pedido_idsector, cantidad, tiempoEstimado FROM productos_Pedidos WHERE sector = :sector AND estado= :estado");
+            $consulta->bindParam(':sector', $sector, PDO::PARAM_STR);
+            $consulta->bindParam(':estado',$estado, PDO::PARAM_STR);
+            $consulta->execute();
+        }
+        $pedidos=$consulta->fetchAll(PDO::FETCH_CLASS,'ProductosPedido');
+        //var_dump($pedidos);
+        foreach ($pedidos as $pedido) {
+            echo "ID: " . $pedido->id . "<br>";
+            echo "ID del pedido: " . $pedido->pedido_id . "<br>";
             echo "Producto: " . $pedido->producto . "<br>";
             echo "Sector: " . $pedido->sector . "<br>";
             echo "Stock: " . $pedido->cantidad . "<br>";

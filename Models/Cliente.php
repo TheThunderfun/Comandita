@@ -29,7 +29,14 @@ Class Cliente {
             $consulta = $objDataBase->prepararConsulta("SELECT * FROM cliente");
             $consulta->execute();
             return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
 
+    public static function actualizarCuenta($precio,$idCliente){
+        $objDataBase=DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("UPDATE cliente SET cuenta=:precio WHERE id = :idCliente");
+        $consulta->bindValue(':precio', $precio, PDO::PARAM_STR);
+        $consulta->bindValue(':idCliente', $idCliente, PDO::PARAM_STR);
+        $consulta->execute();
     }
 
 

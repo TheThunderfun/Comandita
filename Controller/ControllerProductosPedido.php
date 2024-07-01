@@ -50,12 +50,13 @@ class ControllerProductosPedido{
         //var_dump(ProductosPedido::modificarTiempoPreparacion($id, $tiempoEstimado));
        
         try {
-            if (ProductosPedido::modificarPedido($id, $tiempoEstimado,$estado) === true && ProductosPedido::ObtenerSectorPorId($id) === $sector) {
+            if (ProductosPedido::modificarPedido($id, $tiempoEstimado,$estado) === true && ProductosPedido::ObtenerSectorPorId($id) === $sector && $tiempoEstimado!=null) {
                 $respuesta = json_encode(['mensaje' => 'Producto modificado con exito']);
                 $response->getBody()->write($respuesta);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-            } else {
-                $respuesta = json_encode(['Error' => 'No se pudo modificar el producto']);
+            } elseif($tiempoEstimado===null) {
+                ProductosPedido::functionActualizarEstado($id,$estado);
+                $respuesta = json_encode(['mensaje' => 'Se actualizo el estado con exito']);
                 $response->getBody()->write($respuesta);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
@@ -73,6 +74,19 @@ class ControllerProductosPedido{
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 
+    public function ListarPorSectorYEstado($request, $response,$args){
+        $sector=$args["sector"];
+        ProductosPedido::ListarPorSectorYestado($sector,"en preparacion");
+        $response->getBody()->write("");
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
+
+    public function ListarPedidosParaServir($request, $response,$args){
+        $sector=null;
+        ProductosPedido::ListarPorSectorYestado($sector,"listo para servir");
+        $response->getBody()->write("");
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
 
     
 
