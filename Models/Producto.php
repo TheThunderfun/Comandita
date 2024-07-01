@@ -1,5 +1,6 @@
 <?php
 include_once '../DataBase/DB.php';
+include_once '../Archivos/Csv.php';
 Class Producto{
 
     public $id;
@@ -9,7 +10,7 @@ Class Producto{
     public $stock;
     public $tiempoPreparacion;
     public $fechaAlta;
-    
+
     public function crearProducto()
         {
             $objDataBase = DB::obtenerInstancia();
@@ -68,6 +69,28 @@ Class Producto{
                 $consulta_actualizacion->bindParam(':cantidad', $cantidad, PDO::PARAM_INT);
                 $consulta_actualizacion->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
                 $consulta_actualizacion->execute();
+            }
+        }
+
+        public static function CargarCSV($archivo)
+        {
+            $array = Csv::LeerCsv($archivo);
+          
+            for($i = 0; $i < sizeof($array); $i++)
+            {             
+                $campos = explode(",", $array[$i]);               
+                
+                $producto = new Producto();
+                $producto->id = $campos[0];
+                $producto->sector = $campos[1];
+                $producto->nombre = $campos[2];
+                $producto->precio = $campos[3];
+                $producto->stock = $campos[4];
+                $producto->tiempoPreparacion = $campos[5];
+                $producto->fechaAlta = $campos[6];
+
+                
+                $producto->crearProducto();
             }
         }
 

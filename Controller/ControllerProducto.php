@@ -1,5 +1,6 @@
 <?php 
 include_once '../Models/Producto.php'; 
+include_once '../Archivos/Csv.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 Class ControllerProducto{
@@ -25,5 +26,41 @@ Class ControllerProducto{
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
+    }
+
+    public function exportarTabla($request, $response, $args)
+    {
+        try {
+            Csv::exportarTabla('producto', 'Producto', 'producto.csv');
+            $payload = json_encode("Tabla exportada con éxito");
+            $response->getBody()->write($payload);
+            $newResponse = $response->withHeader('Content-Type', 'application/json');
+            return $newResponse;
+        } catch (\Throwable $mensaje) {
+            // Aquí maneja los errores si ocurrieron durante la exportación
+            $response->getBody()->write("Error al exportar: " . $mensaje->getMessage());
+            return $response->withStatus(500); // Devuelve un estado de error 500
+        }
+    }
+
+
+    public function ImportarTabla($request, $response, $args)
+    {
+        try
+        {
+            $archivo = ($_FILES["archivo"]);          
+            Producto::CargarCSV($archivo["tmp_name"]);
+            $payload = json_encode("Carga exitosa.");
+            $response->getBody()->write($payload);
+            $newResponse = $response->withHeader('Content-Type', 'application/json');
+        }
+        catch(Throwable $mensaje)
+        {
+            printf("Error al listar: <br> $mensaje .<br>");
+        }
+        finally
+        {
+            return $newResponse;
+        }    
     }
 }

@@ -34,4 +34,30 @@ Class DB{
             return $this->DBPDO->lastInsertId();
         }
     }
+
+    public static function ObtenerConsulta($sql, $clase=null)
+    {
+        try
+        {   //var_dump($sql);
+            $conexion = DB::obtenerInstancia();
+            $consulta = $conexion->prepararConsulta($sql);
+            //var_dump($consulta);
+            $consulta->execute();
+            $retorno = $consulta->fetchAll(PDO::FETCH_CLASS, $clase);
+        }
+        catch(Throwable $mensaje)
+        {
+            printf("Error de la BD: <br> $mensaje .<br>");
+        }
+        finally
+        {
+            return $retorno;
+        }    
+    }
+
+    public static function obtenerTodos($tabla, $clase)
+    {
+        $sql = "SELECT * FROM $tabla;";
+        return DB::ObtenerConsulta($sql, $clase);
+    }
 }

@@ -99,4 +99,12 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
                                                                                              ->add(\AuthMiddleware::class . ':verificarRolBartender');
     });
 
+
+    $app->group('/archivoProductos', function (RouteCollectorProxy $group){
+
+        $group->post('/importar-csv[/]', \ControllerProducto::class . ':ImportarTabla');
+        $group->get('/guardar[/]', \ControllerProducto::class . ':ExportarTabla'); 
+      })
+      ->add(\AuthMiddleware::class . ':verificarToken')
+      ->add(\AuthMiddleware::class . ':verificarRolSocio');
 $app->run();
