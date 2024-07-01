@@ -31,17 +31,27 @@ Class ControllerProducto{
     public function exportarTabla($request, $response, $args)
     {
         try {
-            Csv::exportarTabla('producto', 'Producto', 'producto.csv');
-            $payload = json_encode("Tabla exportada con éxito");
-            $response->getBody()->write($payload);
-            $newResponse = $response->withHeader('Content-Type', 'application/json');
-            return $newResponse;
+            
+            $csvContent = Csv::exportarTabla('producto', 'Producto');
+    
+
+            $response = $response->withHeader('Content-Description', 'File Transfer')
+                                 ->withHeader('Content-Type', 'text/csv')
+                                 ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')
+                                 ->withHeader('Expires', '0')
+                                 ->withHeader('Cache-Control', 'must-revalidate')
+                                 ->withHeader('Pragma', 'public')
+                                 ->withHeader('Content-Length', strlen($csvContent));
+            $response->getBody()->write($csvContent);
+            return $response;
+    
         } catch (\Throwable $mensaje) {
-            // Aquí maneja los errores si ocurrieron durante la exportación
+     
             $response->getBody()->write("Error al exportar: " . $mensaje->getMessage());
-            return $response->withStatus(500); // Devuelve un estado de error 500
+            return $response->withStatus(500); 
         }
     }
+
 
 
     public function ImportarTabla($request, $response, $args)
