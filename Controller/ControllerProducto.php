@@ -34,14 +34,14 @@ Class ControllerProducto{
             
             $csvContent = Csv::exportarTabla('producto', 'Producto');
     
-            //var_dump($csvContent);
-            // $response = $response->withHeader('Content-Description', 'File Transfer')
-            //                      ->withHeader('Content-Type', 'text/csv')
-            //                      ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')
-            //                      ->withHeader('Expires', '0')
-            //                      ->withHeader('Cache-Control', 'must-revalidate')
-            //                      ->withHeader('Pragma', 'public')
-            //                      ->withHeader('Content-Length', strlen($csvContent));
+            var_dump($csvContent);
+            $response = $response->withHeader('Content-Description', 'File Transfer')
+                                 ->withHeader('Content-Type', 'text/csv')
+                                 ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')
+                                 ->withHeader('Expires', '0')
+                                 ->withHeader('Cache-Control', 'must-revalidate')
+                                 ->withHeader('Pragma', 'public')
+                                 ->withHeader('Content-Length', strlen($csvContent));
             $response->getBody()->write($csvContent);
             return $response;
     

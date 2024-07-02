@@ -17,6 +17,7 @@ require_once '../Controller/ControllerProductosPedido.php';
 require_once '../Controller/ControllerMesa.php';
 require_once '../Controller/ControllerCliente.php';
 require_once '../Controller/ControllerLog.php';
+require_once '../Models/Pdf.php';
 require_once '../Middlewares/AuthMiddleware.php';
 require_once '../Middlewares/LogMiddleware.php';
 require_once '../vendor/autoload.php';
@@ -121,5 +122,25 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
       })
       ->add(\AuthMiddleware::class . ':verificarToken')
       ->add(\AuthMiddleware::class . ':verificarRolSocio');
+
+      $app->get('/download', function($request, $response, $args) {
+  
+        $rutaCompleta = FpdfCreator::CrearPDF();
+        
+        $filename = $rutaCompleta;  
+      
+        header('Pragma: public');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="'. basename($filename) .'.pdf"');
+        header('Content-Transfer-Encoding: binary');
+        header('Cache-Control: max-age=0');
+        readfile($filename);
+        return true;
+      })->add(\AuthMiddleware::class . ':verificarToken')
+      ->add(\AuthMiddleware::class . ':verificarRolSocio');
+      
 
       $app->run();

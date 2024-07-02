@@ -11,6 +11,7 @@
         "http-interop/http-factory-guzzle": "^1.0",
         "laminas/laminas-diactoros": "^2.8",
         "dompdf/dompdf": "^2.0",
-        "oscarotero/psr7-middlewares": "^3.21"
+        "oscarotero/psr7-middlewares": "^3.21",
+        "setasign/fpdf": "^1.8"
     }
 }
