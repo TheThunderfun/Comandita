@@ -16,7 +16,9 @@ require_once '../Controller/ControllerPedido.php';
 require_once '../Controller/ControllerProductosPedido.php';
 require_once '../Controller/ControllerMesa.php';
 require_once '../Controller/ControllerCliente.php';
+require_once '../Controller/ControllerLog.php';
 require_once '../Middlewares/AuthMiddleware.php';
+require_once '../Middlewares/LogMiddleware.php';
 require_once '../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -99,6 +101,18 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
                                                                                              ->add(\AuthMiddleware::class . ':verificarRolBartender');
     });
 
+    $app->group('/socioLogs', function (RouteCollectorProxy $group){  
+
+        $group->get('[/]', \ControllerLog::class . ':CantidadDeOperacionesPorSector');
+        $group->get('/empleadoYSector[/]', \ControllerLog::class . ':CantidadDeOperacionesPorEmpleadoYSector');
+        $group->post('/empleadoDiasHorarios[/]', \ControllerLog::class . ':EmpleadoDiasYHorarios');
+      
+      
+      })
+      ->add(\AuthMiddleware::class . ':verificarToken')
+      ->add(\AuthMiddleware::class . ':verificarRolSocio');
+      
+    $app->add(\LogMiddleware::class);
 
     $app->group('/archivoProductos', function (RouteCollectorProxy $group){
 
@@ -107,4 +121,5 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
       })
       ->add(\AuthMiddleware::class . ':verificarToken')
       ->add(\AuthMiddleware::class . ':verificarRolSocio');
-$app->run();
+
+      $app->run();

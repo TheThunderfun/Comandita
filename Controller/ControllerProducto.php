@@ -34,14 +34,14 @@ Class ControllerProducto{
             
             $csvContent = Csv::exportarTabla('producto', 'Producto');
     
-
-            $response = $response->withHeader('Content-Description', 'File Transfer')
-                                 ->withHeader('Content-Type', 'text/csv')
-                                 ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')
-                                 ->withHeader('Expires', '0')
-                                 ->withHeader('Cache-Control', 'must-revalidate')
-                                 ->withHeader('Pragma', 'public')
-                                 ->withHeader('Content-Length', strlen($csvContent));
+            //var_dump($csvContent);
+            // $response = $response->withHeader('Content-Description', 'File Transfer')
+            //                      ->withHeader('Content-Type', 'text/csv')
+            //                      ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')
+            //                      ->withHeader('Expires', '0')
+            //                      ->withHeader('Cache-Control', 'must-revalidate')
+            //                      ->withHeader('Pragma', 'public')
+            //                      ->withHeader('Content-Length', strlen($csvContent));
             $response->getBody()->write($csvContent);
             return $response;
     
@@ -57,7 +57,7 @@ Class ControllerProducto{
     public function ImportarTabla($request, $response, $args)
     {
         try
-        {
+        {   $data = $request->getParsedBody();
             $archivo = ($_FILES["archivo"]);          
             Producto::CargarCSV($archivo["tmp_name"]);
             $payload = json_encode("Carga exitosa.");
