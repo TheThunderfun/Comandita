@@ -96,4 +96,18 @@ Class Usuario {
         echo "Clave: " . $usuario->clave . "<br><br>";
         }
     }
+
+    public static function ObtenerSectorPorId($idUsuario) {
+        $objDataBase = DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("SELECT tipo FROM usuario WHERE id = :id");
+        $consulta->bindValue(':id', $idUsuario, PDO::PARAM_INT);
+        $consulta->execute();
+        $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+        
+        if ($resultado) {
+            return $resultado['tipo'];
+        } else {
+            return null; 
+        }
+    }
 }

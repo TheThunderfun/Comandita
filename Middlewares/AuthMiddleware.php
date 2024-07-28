@@ -57,9 +57,10 @@ Class AuthMiddleware{
         $header = $request->getHeaderLine('Authorization');
       
         $token = trim(explode("Bearer", $header)[1]);
-        try{
-            AuthJWT::VerificarToken($token);
 
+        try{
+            
+            AuthJWT::VerificarToken($token);
             
             $data = AuthJWT::ObtenerData($token);
       
@@ -76,7 +77,7 @@ Class AuthMiddleware{
             }          
         }
         catch (Exception $e)
-        {
+        {   var_dump($token);
             $response = new Response();
             $payload = json_encode(array('mensaje' => 'ERROR: Usuario no autorizado'));
             $response->getBody()->write( $payload);

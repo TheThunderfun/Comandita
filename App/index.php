@@ -65,9 +65,26 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
 
     $app->get('/encuesta/mejoresComentarios',\ControllerPedido::class . ':TraerMejoresComentarios')->add(\AuthMiddleware::class . ':verificarToken')
     ->add(\AuthMiddleware::class . ':verificarRolSocio');
+    $app->get('/encuesta/peoresComentarios',\ControllerPedido::class . ':TraerPeoresComentarios')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
     $app->get('/mesaMasUsada',\ControllerPedido::class . ':MesaMasUsada')->add(\AuthMiddleware::class . ':verificarToken')
     ->add(\AuthMiddleware::class . ':verificarRolSocio');
+
+    $app->get('/productos/menosVendidos',\ControllerProductosPedido::class . ':LoMenosVendido')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
+
+    $app->get('/productos/masVendidos',\ControllerProductosPedido::class . ':LoMasVendido')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
+
+    $app->get('/mesa/masFacturo',\ControllerPedido::class . ':mesaQueMasFacturo')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
+    $app->get('/mesa/menosFacturo',\ControllerPedido::class . ':mesaQueMenosFacturo')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
     
+    $app->get('/mesa/facturoEntreFechas',\ControllerPedido::class . ':facturacionEntreFechas')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
+    
+
     $app->group('/pedido/listar',function(RouteCollectorProxy $group){
         $group->get('/cervecero/{sector}',\ControllerProductosPedido::class . ':ListarPorSector')  ->add(\AuthMiddleware::class . ':verificarToken')
         ->add(\AuthMiddleware::class . ':verificarRolCervecero');

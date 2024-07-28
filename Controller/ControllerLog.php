@@ -44,7 +44,8 @@ class ControllerLog
         $dni = $parametros['Dni'];
     
         $informacionEmpleado = Log::DiasYHorariosPorEmpleado($dni);
-        var_dump($informacionEmpleado);
+        //var_dump($informacionEmpleado);
+
         if (!empty($informacionEmpleado)) {
             $payload = json_encode(
                 array(

@@ -86,21 +86,30 @@ Class Pedido{
             return $consulta->fetchAll(PDO::FETCH_CLASS,"Pedido");
         }
 
-        public static function CambiarEstadoMesaYpedido($a, $b) {
+        public static function CambiarEstadoMesaYpedido($codigoMesa, $estado) {
             $objDataBase = DB::obtenerInstancia();
     
             try {
 
                 $consultaMesa = $objDataBase->prepararConsulta("UPDATE mesa SET estado = :estado WHERE codigoMesa = :codigoMesa");
-                $consultaMesa->bindParam(':codigoMesa', $a, PDO::PARAM_STR);
-                $consultaMesa->bindParam(':estado', $b, PDO::PARAM_STR);
+                $consultaMesa->bindParam(':codigoMesa', $codigoMesa, PDO::PARAM_STR);
+                $consultaMesa->bindParam(':estado', $estado, PDO::PARAM_STR);
                 $consultaMesa->execute();
         
                 $consultaPedido = $objDataBase->prepararConsulta("UPDATE pedido SET estado = :estado WHERE mesa = :codigoMesa");
-                $consultaPedido->bindParam(':codigoMesa', $a, PDO::PARAM_STR);
-                $consultaPedido->bindParam(':estado', $b, PDO::PARAM_STR);
+                $consultaPedido->bindParam(':codigoMesa', $codigoMesa, PDO::PARAM_STR);
+                $consultaPedido->bindParam(':estado', $estado, PDO::PARAM_STR);
                 $consultaPedido->execute();
-                
+
+                $consultaProductos = $objDataBase->prepararConsulta("SELECT id FROM pedido WHERE mesa=:mesa ");
+                $consultaProductos->bindValue(':mesa', $codigoMesa, PDO::PARAM_STR);
+                $consultaProductos->execute();
+                $pedido = $consultaProductos->fetch(PDO::FETCH_ASSOC);
+                $pedidoId=$pedido["id"];
+                $consultaProductos = $objDataBase->prepararConsulta("UPDATE productos_pedidos SET estado = :estado WHERE pedido_id = :pedidoId");
+                $consultaProductos->bindParam(':pedidoId', $pedidoId, PDO::PARAM_INT);
+                $consultaProductos->bindParam(':estado', $estado, PDO::PARAM_STR);
+                $consultaProductos->execute();
 
             } catch (PDOException $e) {
                 echo("Error al actualizar estado de mesa y pedido: " . $e->getMessage());
@@ -161,9 +170,151 @@ Class Pedido{
             
             return $mesaMasUsada;
         }
+        public static function MesaMenosUsada() {
+            $objDataBase = DB::obtenerInstancia();
+            
+            // Consulta SQL para obtener la mesa más usada
+            $consulta = $objDataBase->prepararConsulta("SELECT mesa, COUNT(*) as cantidad_pedidos
+                                                        FROM pedido
+                                                        GROUP BY mesa
+                                                        ORDER BY cantidad_pedidos ASC
+                                                        LIMIT 1");
+            
+            $consulta->execute();
+            $mesaMasUsada = $consulta->fetch(PDO::FETCH_ASSOC);
+            
+            return $mesaMasUsada;
+        }
+
+        public static function obtenerMesaQueMasFacturo(){
+            $objDataBase = DB::obtenerInstancia();
+
+            $consulta = $objDataBase->prepararConsulta(
+                "SELECT pe.mesa, SUM(pp.cantidad * p.precio) AS valor_total 
+                 FROM pedido pe 
+                 JOIN productos_pedidos pp ON pe.id = pp.pedido_id 
+                 JOIN producto p ON pp.producto = p.nombre 
+                 GROUP BY pe.mesa 
+                 ORDER BY valor_total DESC 
+                 LIMIT 1"
+            );
+            $consulta->execute();
+            $mesa= $consulta->fetch(PDO::FETCH_ASSOC);
+            return $mesa;
+        }
 
         
-}
+        public static function obtenerMesaQueMenosFacturo(){
+            $objDataBase = DB::obtenerInstancia();
+
+            $consulta = $objDataBase->prepararConsulta(
+                "SELECT pe.mesa, SUM(pp.cantidad * p.precio) AS valor_total 
+                FROM pedido pe 
+                JOIN productos_pedidos pp ON pe.id = pp.pedido_id 
+                JOIN producto p ON pp.producto = p.nombre 
+                GROUP BY pe.mesa 
+                ORDER BY valor_total ASC 
+                LIMIT 1"
+            );
+            $consulta->execute();
+            $mesa= $consulta->fetch(PDO::FETCH_ASSOC);
+            return $mesa;
+        }
+
+        public static function obtenerFacturacionEntreFechas($fechaInicio, $fechaFin){
+            $objDataBase = DB::obtenerInstancia();
+
+            $consulta = $objDataBase->prepararConsulta(
+                "SELECT mesa, SUM(cuenta) AS valor_total
+                FROM cliente
+                WHERE fechaCobro BETWEEN :fecha_inicio AND :fecha_fin
+                GROUP BY mesa
+                ORDER BY valor_total DESC"
+            );
+            $consulta->bindValue(':fecha_inicio', $fechaInicio, PDO::PARAM_STR);
+            $consulta->bindValue(':fecha_fin', $fechaFin, PDO::PARAM_STR);
+            $consulta->execute();
+            $facturacion = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            return $facturacion;
+        }
+
+        public static function productosListos($mesa){
+            $objDataBase = DB::obtenerInstancia();
+           
+            $consulta = $objDataBase->prepararConsulta("SELECT id FROM pedido WHERE mesa=:mesa ");
+            $consulta->bindValue(':mesa', $mesa, PDO::PARAM_STR);
+            $consulta->execute();
+            $pedido = $consulta->fetch(PDO::FETCH_ASSOC);
+            if ($pedido) {
+                $pedidoId = $pedido['id'];
+            
+                $consulta = $objDataBase->prepararConsulta("SELECT COUNT(*) AS totalProductos,SUM(CASE WHEN estado = 'listo para servir' THEN 1 ELSE 0 END) 
+                AS productosListos FROM productos_pedidos WHERE pedido_id = :pedidoId");
+                $consulta->bindValue(':pedidoId', $pedidoId, PDO::PARAM_INT);
+                $consulta->execute();
+                $resultado=$consulta->fetch(PDO::FETCH_ASSOC);
+                
+                if ($resultado['totalProductos'] == $resultado['productosListos']) {
+                    return true; 
+                } else {
+                    return false; 
+                }
+            } else {
+                return false; 
+            }
+            }
+            
+
+
+            public static function servidoConDemora($mesa){
+                $objDataBase = DB::obtenerInstancia();
+           
+                $consulta = $objDataBase->prepararConsulta("SELECT id FROM pedido WHERE mesa=:mesa ");
+                $consulta->bindValue(':mesa', $mesa, PDO::PARAM_STR);
+                $consulta->execute();
+                $pedido = $consulta->fetch(PDO::FETCH_ASSOC);
+                $pedidoId = $pedido['id'];
+                $consulta = $objDataBase->prepararConsulta("SELECT  MAX(tiempoEstimado) AS tiempoMaximo, 
+                    MAX(fechaModf) AS fechaModificacionReciente 
+                FROM 
+                    productos_pedidos 
+                WHERE 
+                    pedido_id = :pedidoId
+            ");
+
+            $consulta->bindParam(':pedidoId', $pedidoId, PDO::PARAM_INT);
+            $consulta->execute();
+            $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+
+            if ($resultado) {
+                
+                $tiempoMaximoEstimado = $resultado['tiempoMaximo'];
+                $fechaModificacionReciente = $resultado['fechaModificacionReciente'];
+
+
+                $timezone = new DateTimeZone('America/Argentina/Buenos_Aires');
+
+                $horaActual = new DateTime('now', $timezone);
+
+                // Convertir la fecha de modificación más reciente a un objeto DateTime en la misma zona horaria
+                $fechaModificacion = new DateTime($fechaModificacionReciente, $timezone);
+
+                // Sumar el tiempo estimado a la hora de modificación
+                $fechaModificacion->add(new DateInterval("PT{$tiempoMaximoEstimado}M"));
+
+                var_dump("actual",$horaActual);
+                var_dump("anterior",$fechaModificacion);
+                if ($horaActual > $fechaModificacion) {
+                    echo "El pedido se servirá con demora.";
+                    return true;
+                } else {
+                    echo "El pedido no se servirá con demora.";
+                    return false;
+                }
+            }
+        }
+    
+    }
 
 
 

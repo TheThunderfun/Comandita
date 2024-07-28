@@ -58,19 +58,11 @@ class Mesa{
         }
     }
 
-    // public static function CambiarEstadoMesa($codigoMesa,$estado){
-    //     $objDataBase = DB::obtenerInstancia();
-
-    //     $consulta_id_producto = $objDataBase->prepararConsulta("UPDATE mesa SET estado = :estado  WHERE codigoMesa = :codigoMesa");
-    //     $consulta_id_producto->bindParam(':codigoMesa', $codigoMesa, PDO::PARAM_STR);
-    //     $consulta_id_producto->bindParam(':estado', $estado, PDO::PARAM_STR);
-    //     $consulta_id_producto->execute();
-    // }
 
     public static function ObtenerEstadoMesaPorId($idMesa){
         $objDataBase = DB::obtenerInstancia();
         $consulta = $objDataBase->prepararConsulta("SELECT estado FROM mesa WHERE codigoMesa = :idMesa");
-        $consulta->bindParam(':idMesa', $idMesa, PDO::PARAM_INT);
+        $consulta->bindParam(':idMesa', $idMesa, PDO::PARAM_STR);
         $consulta->execute();
         $resultado=$consulta->fetch(PDO::FETCH_ASSOC);
         //var_dump($resultado);

@@ -10,12 +10,13 @@ class Log{
 
     public function CargarUno(){
         $objDataBase = DB::obtenerInstancia();
-        $consulta = $objDataBase->prepararConsulta("INSERT INTO logs (dni,sector, metodo, url) VALUES (:dni,:sector,:metodo, :url)");
+        $consulta = $objDataBase->prepararConsulta("INSERT INTO logs (dni,sector,/*,fecha,*/ metodo, url) VALUES (:dni,:sector,/*:fecha,*/:metodo, :url)");
+        //date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-
+        $fechaActual=date('Y-m-d H:i:s');
         $consulta->bindValue(':dni', $this->dni, PDO::PARAM_STR);
         $consulta->bindValue(':sector', $this->sector, PDO::PARAM_STR);
-       // $consulta->bindValue(':fecha', date('Y-m-d'), PDO::PARAM_STR);
+        //$consulta->bindValue(':fecha',$fechaActual, PDO::PARAM_STR);
         $consulta -> bindParam(':metodo', $this->metodo);
         $consulta -> bindParam(':url', $this->url);
 

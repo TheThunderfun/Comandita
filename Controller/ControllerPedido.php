@@ -23,10 +23,11 @@ Class ControllerPedido{
         } else {
             $pedido->foto = null; 
         }
+        $sector=Usuario::ObtenerSectorPorId($datos['idEmpleado']);
+        var_dump($pedido->mesa);
         $estado=Mesa::ObtenerEstadoMesaPorId($pedido->mesa);
-        var_dump($estado);
         try {
-            if($estado=="abierta"){
+            if($estado=="abierta" && $sector==="mozo"){
             $pedido->CrearPedido();
             $respuesta = json_encode(['mensaje' => 'Pedido creado con exito']);
             $response->getBody()->write($respuesta);
@@ -83,14 +84,24 @@ Class ControllerPedido{
         $data=$request->getParsedBody();
 
         $mesa=$data['mesa'];
-        $estado=$data['estado'];
 
-        //var_dump($mesa);
+        
         try{
-            Pedido::CambiarEstadoMesaYpedido($mesa,$estado);
-            $respuesta = json_encode(["Pedido actualizado con exito"]);
-            $response->getBody()->write($respuesta);
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            if(Pedido::productosListos($mesa)){
+
+                if(Pedido::servidoConDemora($mesa)){
+                    //Pedido::CambiarEstadoMesaYpedido($mesa,"servido con demora");
+                }else{
+                    //Pedido::CambiarEstadoMesaYpedido($mesa,"servido");
+                }
+                $respuesta = json_encode(["Pedido actualizado con exito"]);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }else{
+                $respuesta = json_encode(['error' => 'No todos los productos estan listos']);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+            }
         } catch (Exception $e) {
             $respuesta = json_encode(['error' => 'Error al crear pedido: ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);
@@ -109,7 +120,7 @@ Class ControllerPedido{
             Pedido::CambiarEstadoMesaYpedido($mesa,$estado);
             $precio=Pedido::CalcularValorTotalPorMesa($mesa);
             $idCliente=Pedido::obtenerIdCliente($mesa);
-            var_dump($precio,$idCliente);
+            Cliente::asignarMesaCliente($mesa,$idCliente);
             Cliente::actualizarCuenta($precio,$idCliente);
             $respuesta = json_encode(["En proceso de cobranza"]);
             $response->getBody()->write($respuesta);
@@ -176,6 +187,18 @@ Class ControllerPedido{
           ->withHeader('Content-Type', 'application/json');
     }
 
+    public function TraerPeoresComentarios($request, $response, $args)
+    {
+        
+        $encuesta = new Encuesta();
+        $comentarios = $encuesta ->peoresComentarios();      
+        $payload = json_encode($comentarios,JSON_PRETTY_PRINT);
+
+        $response->getBody()->write($payload);
+        return $response
+          ->withHeader('Content-Type', 'application/json');
+    }
+
     public function MesaMasUsada($request, $response, $args){
 
         $resultado=Pedido::MesaUsada();
@@ -183,4 +206,80 @@ Class ControllerPedido{
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
+
+    public function MesaMenosUsada($request, $response, $args){
+
+        $resultado=Pedido::MesaMenosUsada();
+        $respuesta = json_encode(["La mesa más menos es la número " . $resultado['mesa'] . " con " . $resultado['cantidad_pedidos'] . " pedidos."]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+    public function mesaQueMasFacturo($request, $response, $args) {
+        $resultado = Pedido::obtenerMesaQueMasFacturo();
+        
+        if ($resultado) {
+            $respuesta = json_encode([
+                "mensaje" => "La mesa que más facturó es la " . $resultado['mesa'] . " con un total de " . $resultado['valor_total'] . " pesos."
+            ]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } else {
+            $respuesta = json_encode([
+                "error" => "No se pudo obtener la información de la mesa que más facturó."
+            ]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+    public function mesaQueMenosFacturo($request, $response, $args) {
+        $resultado = Pedido::obtenerMesaQueMenosFacturo();
+        
+        if ($resultado) {
+            $respuesta = json_encode([
+                "mensaje" => "La mesa que menos facturó es la " . $resultado['mesa'] . " con un total de " . $resultado['valor_total'] . " pesos."
+            ]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } else {
+            $respuesta = json_encode([
+                "error" => "No se pudo obtener la información de la mesa que más facturó."
+            ]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+
+    public function facturacionEntreFechas($request, $response, $args){
+        $datos = $request->getParsedBody();
+        $fechaInicio = $datos['fechaInicio'];
+        $fechaFin = $datos['fechaFin'];
+        try {
+            $resultado = Pedido::obtenerFacturacionEntreFechas($fechaInicio, $fechaFin);
+
+            if ($resultado) {
+                $respuesta = json_encode([
+                    "mensaje" => "Facturación de las mesas entre " . $fechaInicio . " y " . $fechaFin,
+                    "facturacion" => $resultado
+                ]);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+            } else {
+                $respuesta = json_encode([
+                    "error" => "No se encontraron datos de facturación entre las fechas proporcionadas."
+                ]);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+        } catch (Exception $e) {
+            $respuesta = json_encode([
+                "error" => "Error al obtener la facturación: " . $e->getMessage()
+            ]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+
+    }
 }
+
+
+

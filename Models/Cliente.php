@@ -6,6 +6,9 @@ Class Cliente {
     public $nombre;
     public $apellido;
     public $dni;
+    public $fechaCobro;
+
+    public $mesa;
 
     public function __construct() { }
 
@@ -34,11 +37,23 @@ Class Cliente {
     public static function actualizarCuenta($precio,$idCliente){
         $objDataBase=DB::obtenerInstancia();
         $consulta = $objDataBase->prepararConsulta("UPDATE cliente SET cuenta=:precio WHERE id = :idCliente");
+        $consulta = $objDataBase->prepararConsulta("UPDATE cliente SET fechaCobro=fecha WHERE id = :idCliente");
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
+        $fecha=date('Y-m-d H:i:s');
         $consulta->bindValue(':precio', $precio, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha', $fecha, PDO::PARAM_STR);
         $consulta->bindValue(':idCliente', $idCliente, PDO::PARAM_STR);
         $consulta->execute();
     }
 
+
+    public static function asignarMesaCliente($mesa,$idCliente){
+        $objDataBase=DB::obtenerInstancia();
+        $consulta = $objDataBase->prepararConsulta("UPDATE cliente SET mesa=:mesa WHERE id = :idCliente");
+        $consulta->bindValue(':mesa', $mesa, PDO::PARAM_STR);
+        $consulta->bindValue(':idCliente', $idCliente, PDO::PARAM_STR);
+        $consulta->execute();
+    }
 
 }
 

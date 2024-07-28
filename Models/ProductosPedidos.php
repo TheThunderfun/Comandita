@@ -9,25 +9,31 @@ class ProductosPedido {
     public $sector;
     public $estado;
     public $tiempoEstimado;
+    public $fechaModf;
+
+   
 
     public function CargarUno() {
             $objDataBase = DB::obtenerInstancia();
+            date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-            $consulta = $objDataBase->prepararConsulta("INSERT INTO productos_pedidos (pedido_id, producto, cantidad,sector,estado,tiempoEstimado) 
-                                                        VALUES (:pedido_id, :producto, :cantidad,:sector,:estado,:tiempoEstimado)");
+            $consulta = $objDataBase->prepararConsulta("INSERT INTO productos_pedidos (pedido_id, producto, cantidad,sector,estado,tiempoEstimado,fechaModf) 
+                                                        VALUES (:pedido_id, :producto, :cantidad,:sector,:estado,:tiempoEstimado,:fechaModf)");
             $consulta->bindValue(':pedido_id', $this->pedido_id, PDO::PARAM_INT);
             $consulta->bindValue(':producto', $this->producto, PDO::PARAM_STR);
             $consulta->bindValue(':cantidad', $this->cantidad, PDO::PARAM_INT);
             $consulta->bindValue(':sector', self::ObtenerSectorPorNombre($this->producto), PDO::PARAM_STR);
             $consulta->bindValue(':estado', "en cola", PDO::PARAM_STR);
             $consulta->bindValue(':tiempoEstimado',$this->tiempoEstimado,PDO::PARAM_INT);
+            $consulta->bindValue(':fechaModf',date('Y-m-d H:i:s'),PDO::PARAM_STR);
+
             $consulta->execute();
    
     }
 
     public static function BuscarProductoPorNombre($nombre){
         $objDataBase = DB::obtenerInstancia();
-        Producto::listarProductos();
+        //Producto::listarProductos();
         $consulta = $objDataBase->prepararConsulta("SELECT * FROM producto WHERE nombre = :nombre");
         $consulta->bindValue(':nombre', $nombre, PDO::PARAM_STR);
         $consulta->execute();
@@ -148,6 +154,29 @@ class ProductosPedido {
             return null;
         }
     }
+    public static function ObtenerLoMasVendido() {
+        $objDataBase = DB::obtenerInstancia();
 
+        $consulta = $objDataBase->prepararConsulta("SELECT producto, SUM(cantidad) as total_vendido
+                                                    FROM productos_pedidos
+                                                    GROUP BY producto
+                                                    ORDER BY total_vendido DESC
+                                                    LIMIT 1");
+
+        $consulta->execute();
+        return $consulta->fetch(PDO::FETCH_ASSOC);
+    }
+    public static function ObtenerLoMenosVendido() {
+        $objDataBase = DB::obtenerInstancia();
+
+        $consulta = $objDataBase->prepararConsulta("SELECT producto, SUM(cantidad) as total_vendido
+                                                    FROM productos_pedidos
+                                                    GROUP BY producto
+                                                    ORDER BY total_vendido ASC
+                                                    LIMIT 1");
+
+        $consulta->execute();
+        return $consulta->fetch(PDO::FETCH_ASSOC);
+    }
     
 }

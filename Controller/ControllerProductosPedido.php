@@ -15,25 +15,33 @@ class ControllerProductosPedido{
         $productos->pedido_id=$datos['pedido_id'];
         $productos->producto=$datos['producto'];
         $productos->cantidad=$datos['cantidad'];
+
         if (isset($datos['tiempoEstimado'])) {
             $productos->tiempoEstimado = $datos['tiempoEstimado'];
         } else {
             // Si tiempoEstimado no está presente o es null, asignar null explícitamente
             $productos->tiempoEstimado = null;
         }
-        //var_dump($productos);
+
+        var_dump($productos->producto);
+
         try {
             if(ProductosPedido::BuscarProductoPorNombre($productos->producto)!=null){
                 $productos->CargarUno();
                 $tiempoEstimado=ProductosPedido::VerTiempoEstimadoPedido($productos->pedido_id);
-                //Pedido::ActulizarTiempoEstimado($tiempoEstimado,$productos->pedido_id);
+                
                 Producto::ActualizarStock($productos->cantidad,$productos->producto);
                 $respuesta = json_encode(['mensaje' => 'Producto pedido con exito']);
                 $response->getBody()->write($respuesta);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+            }else {
+                // Producto no encontrado
+                $respuesta = json_encode(['error' => 'El producto pedido no existe']);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
         } catch (Exception $e) {
-            $respuesta = json_encode(['error' => 'El producto pedido no existe ' . $e->getMessage()]);
+            $respuesta = json_encode(['error' => 'Hubo un error al procesar la solicitud ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
@@ -48,7 +56,11 @@ class ControllerProductosPedido{
         $sector = $args['sector'];
         //var_dump($args["sector"]);
         //var_dump(ProductosPedido::modificarTiempoPreparacion($id, $tiempoEstimado));
-       
+       if($estado!= "listo para servir" || $estado!= "en preparacion"){
+        $respuesta = json_encode(['mensaje' => 'No es un estado valido']);
+        $response->getBody()->write($respuesta);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+       }
         try {
             if (ProductosPedido::modificarPedido($id, $tiempoEstimado,$estado) === true && ProductosPedido::ObtenerSectorPorId($id) === $sector && $tiempoEstimado!=null) {
                 $respuesta = json_encode(['mensaje' => 'Producto modificado con exito']);
@@ -88,6 +100,31 @@ class ControllerProductosPedido{
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 
-    
+    public function LoMasVendido($request, $response, $args) {
+        try {
+            $productoMasVendido = ProductosPedido::ObtenerLoMasVendido();
+            $respuesta = json_encode($productoMasVendido);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (Exception $e) {
+            $respuesta = json_encode(['error' => 'Error al obtener el producto más vendido: ' . $e->getMessage()]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+
+    public function LoMenosVendido($request, $response, $args) {
+        try {
+            $productoMenosVendido = ProductosPedido::ObtenerLoMenosVendido();
+            $respuesta = json_encode($productoMenosVendido);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (Exception $e) {
+            $respuesta = json_encode(['error' => 'Error al obtener el producto menos vendido: ' . $e->getMessage()]);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+
 
 }
