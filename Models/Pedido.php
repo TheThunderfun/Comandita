@@ -60,19 +60,30 @@ Class Pedido{
 
 
         public static function ActulizarTiempoEstimado($tiempoEstimado,$idPedido){
-            $objDataBase = DB::obtenerInstancia();
-            $consultaEsperando = $objDataBase->prepararConsulta("UPDATE pedido SET tiempoPreparacionEstimado = $tiempoEstimado WHERE id = $idPedido");
-            $consultaEsperando->execute();
+            try {
+                $objDataBase = DB::obtenerInstancia();
+                $consulta = $objDataBase->prepararConsulta("UPDATE pedido SET tiempoEstimado = :tiempo WHERE id = :idPedido");
+                $consulta->bindParam(':tiempo', $tiempoEstimado, PDO::PARAM_INT);
+                $consulta->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+        
+                // Depuración: Registro de la consulta SQL
+                error_log("UPDATE pedido SET tiempoEstimado = $tiempoEstimado WHERE id = $idPedido");
+        
+                $consulta->execute();
+            } catch (PDOException $e) {
+                error_log("Error al actualizar el tiempo estimado: " . $e->getMessage());
+            }
         }
 
         public static function PedidoExiste($mesa,$pedido){
             try {
                 $objDataBase = DB::obtenerInstancia();
-                $consulta = $objDataBase->prepararConsulta("SELECT * FROM pedido WHERE mesa = :codigoMesa AND id = :idPedido");
+                $consulta = $objDataBase->prepararConsulta("SELECT COUNT(*) as cantidad FROM pedido WHERE mesa = :codigoMesa AND id = :idPedido");
                 $consulta->bindParam(':codigoMesa', $mesa, PDO::PARAM_STR);
-                $consulta->bindParam(':idPedido', $pedido, PDO::PARAM_INT);
+                $consulta->bindParam(':idPedido', $pedido, PDO::PARAM_INT);        
                 $consulta->execute();
-                return $consulta->fetchAll(PDO::FETCH_ASSOC);
+                $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+                return $resultado['cantidad'] > 0;
             } catch (PDOException $e) {
                 error_log("Error al obtener información: " . $e->getMessage());
                 return false;
@@ -318,6 +329,34 @@ Class Pedido{
             return $consulta->fetchAll(PDO::FETCH_ASSOC);
         }
     
+        public static function consultarEstadoMesa($mesa,$pedido,$estado){
+            try {
+                $objDataBase = DB::obtenerInstancia();
+                
+      
+                $consulta = $objDataBase->prepararConsulta(
+                    "SELECT estado FROM pedido WHERE mesa = :mesa AND id = :pedido"
+                );
+                $consulta->bindValue(':mesa', $mesa, PDO::PARAM_STR);
+                $consulta->bindValue(':pedido', $pedido, PDO::PARAM_INT);
+                $consulta->execute();
+        
+
+                $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+                //var_dump($resultado);
+
+                if ($resultado && $resultado['estado'] == $estado) {
+                    return true; 
+                } else {
+                    return false; 
+                }
+                
+            } catch (PDOException $e) {
+
+                error_log("Error al consultar estado de mesa: " . $e->getMessage());
+                return false; 
+            }
+        }
     }
 
 

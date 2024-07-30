@@ -63,12 +63,23 @@ class ProductosPedido {
 
     public static function modificarPedido($idPedido,$tiempoPreparacion,$estado){
         try {
+            date_default_timezone_set('America/Argentina/Buenos_Aires');
+            $fechaModf=date('Y-m-d H:i:s');
             $objDataBase = DB::obtenerInstancia();
-            $consulta = $objDataBase->prepararConsulta("UPDATE productos_pedidos SET tiempoEstimado = :tiempoPreparacion , estado = :estado WHERE id = :idPedido");
-            $consulta->bindParam(':tiempoPreparacion', $tiempoPreparacion, PDO::PARAM_INT);
-            $consulta->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
-            $consulta->bindParam(':estado', $estado, PDO::PARAM_INT);
-            $consulta->execute();
+
+            if($estado=="en preparacion"){
+                $consulta = $objDataBase->prepararConsulta("UPDATE productos_pedidos SET tiempoEstimado = :tiempoPreparacion , estado = :estado, fechaModf = :fechaModf WHERE id = :idPedido");
+                $consulta->bindParam(':tiempoPreparacion', $tiempoPreparacion, PDO::PARAM_INT);
+                $consulta->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+                $consulta->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $consulta->bindParam(':fechaModf',$fechaModf,PDO::PARAM_STR);
+                $consulta->execute();
+            }else{
+                $consulta = $objDataBase->prepararConsulta("UPDATE productos_pedidos SET estado = :estado WHERE id = :idPedido");
+                $consulta->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+                $consulta->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $consulta->execute();
+            }
             return true; 
         } catch (PDOException $e) {
             error_log("Error al modificar tiempo de preparación del pedido: " . $e->getMessage());
@@ -107,7 +118,7 @@ class ProductosPedido {
             $consulta->bindParam(':estado',$estado, PDO::PARAM_STR);
             $consulta->execute();
         }else{
-            $consulta = $objDataBase->prepararConsulta("SELECT id, producto, pedido_idsector, cantidad, tiempoEstimado FROM productos_Pedidos WHERE sector = :sector AND estado= :estado");
+            $consulta = $objDataBase->prepararConsulta("SELECT id, producto, pedido_id,sector, cantidad, tiempoEstimado FROM productos_Pedidos WHERE sector = :sector AND estado= :estado");
             $consulta->bindParam(':sector', $sector, PDO::PARAM_STR);
             $consulta->bindParam(':estado',$estado, PDO::PARAM_STR);
             $consulta->execute();

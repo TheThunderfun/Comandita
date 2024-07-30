@@ -14,7 +14,6 @@ Class ControllerPedido{
         $pedido = new Pedido();
         $pedido->cliente = $datos['cliente'];
         $pedido->mesa = $datos['mesa'];
-        //$pedido->estado = "en preparacion";
         $pedido->idEmpleado = $datos['idEmpleado'];
 
         
@@ -50,8 +49,7 @@ Class ControllerPedido{
 
         $mesa=$data['mesa'];
         $pedido=$data['pedido'];
-
-        if(Pedido::PedidoExiste($mesa,$pedido)!=false){
+        if(Pedido::PedidoExiste($mesa,$pedido)){
             $tiempo=ProductosPedido::VerTiempoEstimadoPedido($pedido);
             Pedido::ActulizarTiempoEstimado($tiempo,$pedido);
            // echo "El tiempo de demora del pedido es:". $tiempo;
@@ -69,6 +67,7 @@ Class ControllerPedido{
         $productos=Pedido::ObtenerTodos();
 
         foreach($productos as $producto){
+            echo "<br>";
             echo "El id del pedido es:",$producto->id."<br>";
             echo "El cliente del pedido es:",$producto->cliente."<br>";
             echo "La mesa del pedido es:",$producto->mesa."<br>";
@@ -116,7 +115,6 @@ Class ControllerPedido{
         $mesa=$data['mesa'];
         $estado=$data['estado'];
 
-        //var_dump($mesa);
         try{
             Pedido::CambiarEstadoMesaYpedido($mesa,$estado);
             $precio=Pedido::CalcularValorTotalPorMesa($mesa);
@@ -155,20 +153,27 @@ Class ControllerPedido{
         $encuesta->fechaAlta = date ('Y-m-d'); 
         
         try{
-        $encuesta->crearEncuesta();
-        Pedido::CambiarEstadoMesa($mesa,"abierta");
-        $respuesta = json_encode(array("mensaje" => "La encuesta fue contestada con exito y el pago fue recibido! ",
-        "puntuacionMozo"=> $encuesta->puntuacionMozo ,  
-        "puntuacionCocina"=>$encuesta->puntuacionCocina ,  
-        "puntuacionMesa"=>$encuesta->puntuacionMesa ,  
-        "puntuacionBebidas"=>$encuesta->puntuacionBebidas,  
-        "comentario"=>$encuesta->comentario ,  
-        "codigoMesa"=>$encuesta->codigoMesa ,  
-        "codigoPedido"=>$encuesta->codigoPedido ,),JSON_PRETTY_PRINT);
-        $response->getBody()->write($respuesta);
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            if(Pedido::consultarEstadoMesa($mesa,$idPedido,"con cliente pagando")){
+
+                $encuesta->crearEncuesta();
+                Pedido::CambiarEstadoMesa($mesa,"abierta");
+                $respuesta = json_encode(array("mensaje" => "La encuesta fue contestada con exito y el pago fue recibido! ",
+                "puntuacionMozo"=> $encuesta->puntuacionMozo ,  
+                "puntuacionCocina"=>$encuesta->puntuacionCocina ,  
+                "puntuacionMesa"=>$encuesta->puntuacionMesa ,  
+                "puntuacionBebidas"=>$encuesta->puntuacionBebidas,  
+                "comentario"=>$encuesta->comentario ,  
+                "codigoMesa"=>$encuesta->codigoMesa ,  
+                "codigoPedido"=>$encuesta->codigoPedido ,),JSON_PRETTY_PRINT);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }else{
+                $respuesta = json_encode(['error' => 'La mesa no se encuentra abonando ' ]);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+            }
         }catch(Exception $e) {
-            $respuesta = json_encode(['error' => 'Error al cobrar: ' . $e->getMessage()]);
+            $respuesta = json_encode(['error' => 'Error al generar la encuesta: ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }

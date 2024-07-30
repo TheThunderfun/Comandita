@@ -56,22 +56,25 @@ class ControllerProductosPedido{
         $sector = $args['sector'];
         //var_dump($args["sector"]);
         //var_dump(ProductosPedido::modificarTiempoPreparacion($id, $tiempoEstimado));
-       if($estado!= "listo para servir" || $estado!= "en preparacion"){
-        $respuesta = json_encode(['mensaje' => 'No es un estado valido']);
-        $response->getBody()->write($respuesta);
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-       }
+       
         try {
-            if (ProductosPedido::modificarPedido($id, $tiempoEstimado,$estado) === true && ProductosPedido::ObtenerSectorPorId($id) === $sector && $tiempoEstimado!=null) {
-                $respuesta = json_encode(['mensaje' => 'Producto modificado con exito']);
+
+            if($estado== "listo para servir" || $estado== "en preparacion"){
+                if (ProductosPedido::modificarPedido($id, $tiempoEstimado,$estado) === true && ProductosPedido::ObtenerSectorPorId($id) === $sector && $tiempoEstimado!=null) {
+                    $respuesta = json_encode(['mensaje' => 'Producto modificado con exito']);
+                    $response->getBody()->write($respuesta);
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+                } elseif($tiempoEstimado===null) {
+                    ProductosPedido::functionActualizarEstado($id,$estado);
+                    $respuesta = json_encode(['mensaje' => 'Se actualizo el estado con exito']);
+                    $response->getBody()->write($respuesta);
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+                }
+               }else{
+                $respuesta = json_encode(['Error' => 'No es un estado valido']);
                 $response->getBody()->write($respuesta);
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-            } elseif($tiempoEstimado===null) {
-                ProductosPedido::functionActualizarEstado($id,$estado);
-                $respuesta = json_encode(['mensaje' => 'Se actualizo el estado con exito']);
-                $response->getBody()->write($respuesta);
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-            }
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+               }
         } catch (Exception $exception) {
             $respuesta = json_encode(['Error' => 'No se pudo modificar el producto']);
             $response->getBody()->write($respuesta);
@@ -97,14 +100,13 @@ class ControllerProductosPedido{
         try {
    
             $pedidosListos = ProductosPedido::listarPedidosListos();
-    
-       
             $textoPlano = '';
             foreach ($pedidosListos as $pedido) {
                 $textoPlano .= "ID Pedido: " . $pedido['pedido_id'] . " - Estado: " . $pedido['estado'] . "\n";
             }
-    
-            // Escribir la respuesta
+            if($pedidosListos==null){
+                $textoPlano="No hay pedidos para servir";
+            }
             $response->getBody()->write($textoPlano);
             return $response->withHeader('Content-Type', 'text/plain')->withStatus(200);
         } catch (Exception $e) {

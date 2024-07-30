@@ -16,18 +16,24 @@ Class ControllerProducto{
         $producto->fechaAlta = date('Y-m-d'); 
     
         try {
-
             $tiposValidos = ['bartender', 'cervecero', 'cocinero'];
-            if(in_array($producto->sector, $tiposValidos)){
+            if (!in_array($producto->sector, $tiposValidos)) {
+                $respuesta = json_encode(['error' => 'Sector no válido']);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+    
+            if (Producto::productoExiste($producto->nombre)) {
+                $respuesta = json_encode(['error' => 'El producto ya existe']);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+    
             $producto->crearProducto();
-            $respuesta = json_encode(['mensaje' => 'Producto creado con exito']);
+            $respuesta = json_encode(['mensaje' => 'Producto creado con éxito']);
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-        }else{
-            $respuesta = json_encode(['error' => 'Sector no valido ']);
-            $response->getBody()->write($respuesta);
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-        }
+    
         } catch (Exception $e) {
             $respuesta = json_encode(['error' => 'Error al crear producto: ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);

@@ -94,4 +94,15 @@ Class Producto{
             }
         }
 
+        public static function productoExiste($nombreProducto) {
+            $objDataBase = DB::obtenerInstancia();
+            $consulta = $objDataBase->prepararConsulta("SELECT COUNT(*) as cantidad FROM producto WHERE nombre = :nombreProducto");
+            $consulta->bindParam(':nombreProducto', $nombreProducto, PDO::PARAM_STR);
+            $consulta->execute();
+        
+            $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+        
+            return $resultado['cantidad'] > 0;
+        }
+
 }
