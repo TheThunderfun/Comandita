@@ -139,6 +139,32 @@ class ProductosPedido {
         }
     }
 
+    public static function listarPedidosListos(){
+        $objDataBase = DB::obtenerInstancia();
+
+        try {
+            
+            $consulta = $objDataBase->prepararConsulta("
+                SELECT pedido_id, 'listo para servir' AS estado
+                FROM productos_pedidos
+                GROUP BY pedido_id
+                HAVING COUNT(CASE WHEN estado <> 'listo para servir' THEN 1 END) = 0
+            ");
+        
+            $consulta->execute();
+           
+            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        
+            
+            return $resultados;
+        
+        } catch (PDOException $e) {
+            // Manejar errores
+            echo 'Error: ' . $e->getMessage();
+            return null;
+        }
+    }
+
     public static function VerTiempoEstimadoPedido($idPedido){
         $objDataBase = DB::obtenerInstancia();
 

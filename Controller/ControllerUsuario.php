@@ -15,13 +15,20 @@ Class ControllerUsuario{
         $usuario->fechaAlta = date('Y-m-d');
         $usuario->dni=$datos['dni'];
         $usuario->clave = password_hash($datos['clave'], PASSWORD_DEFAULT);
+
+        
     
         try {
-            $usuario->CrearUsuario();
-            $respuesta = json_encode(['mensaje' => 'Usuario creado con exito']);
-            $response->getBody()->write($respuesta);
+            $tiposValidos = ['bartender', 'cervecero', 'cocinero', 'socio'];
+            if(in_array($usuario->tipo, $tiposValidos)){
+                $usuario->CrearUsuario();
+                $respuesta = json_encode(['mensaje' => 'Usuario creado con exito']);
+                $response->getBody()->write($respuesta);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+            }else{
+                throw new Exception("Tipo usuario no valido"); 
+            }
              //Usuario::ListarUsuarios();
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         } catch (Exception $e) {
             $respuesta = json_encode(['error' => 'Error al crear usuario: ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);

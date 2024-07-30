@@ -94,10 +94,25 @@ class ControllerProductosPedido{
     }
 
     public function ListarPedidosParaServir($request, $response,$args){
-        $sector=null;
-        ProductosPedido::ListarPorSectorYestado($sector,"listo para servir");
-        $response->getBody()->write("");
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        try {
+   
+            $pedidosListos = ProductosPedido::listarPedidosListos();
+    
+       
+            $textoPlano = '';
+            foreach ($pedidosListos as $pedido) {
+                $textoPlano .= "ID Pedido: " . $pedido['pedido_id'] . " - Estado: " . $pedido['estado'] . "\n";
+            }
+    
+            // Escribir la respuesta
+            $response->getBody()->write($textoPlano);
+            return $response->withHeader('Content-Type', 'text/plain')->withStatus(200);
+        } catch (Exception $e) {
+            
+            $error = 'Error al obtener los pedidos: ' . $e->getMessage();
+            $response->getBody()->write($error);
+            return $response->withHeader('Content-Type', 'text/plain')->withStatus(500);
+        }
     }
 
     public function LoMasVendido($request, $response, $args) {

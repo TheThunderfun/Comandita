@@ -16,11 +16,18 @@ Class ControllerProducto{
         $producto->fechaAlta = date('Y-m-d'); 
     
         try {
+
+            $tiposValidos = ['bartender', 'cervecero', 'cocinero'];
+            if(in_array($producto->sector, $tiposValidos)){
             $producto->crearProducto();
             $respuesta = json_encode(['mensaje' => 'Producto creado con exito']);
             $response->getBody()->write($respuesta);
-            //Producto::listarProductos();
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        }else{
+            $respuesta = json_encode(['error' => 'Sector no valido ']);
+            $response->getBody()->write($respuesta);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
         } catch (Exception $e) {
             $respuesta = json_encode(['error' => 'Error al crear producto: ' . $e->getMessage()]);
             $response->getBody()->write($respuesta);
@@ -34,7 +41,7 @@ Class ControllerProducto{
             
             $csvContent = Csv::exportarTabla('producto', 'Producto');
     
-            var_dump($csvContent);
+           //var_dump($csvContent);
             $response = $response->withHeader('Content-Description', 'File Transfer')
                                  ->withHeader('Content-Type', 'text/csv')
                                  ->withHeader('Content-Disposition', 'attachment; filename="producto.csv"')

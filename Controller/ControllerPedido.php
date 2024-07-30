@@ -34,6 +34,7 @@ Class ControllerPedido{
             Pedido::CambiarEstadoMesaYpedido($pedido->mesa,"con cliente esperando pedido");
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
             }else{
+
                 $respuesta = json_encode(['mensaje' => 'La mesa no esta abierta para realzar el pedido']);
                 $response->getBody()->write($respuesta);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -277,8 +278,20 @@ Class ControllerPedido{
             $response->getBody()->write($respuesta);
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
-
     }
+
+    public function verPedidosConDemora($request, $response, $args){
+        $pedidosConDemora = Pedido::verPedidosConDemora();
+
+        if (empty($pedidosConDemora)) {
+            $response->getBody()->write(json_encode(["message" => "No se encontraron pedidos con demora."]));
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+        } else {
+            $response->getBody()->write(json_encode($pedidosConDemora));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
+    }
+
 }
 
 

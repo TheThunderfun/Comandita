@@ -192,16 +192,16 @@ Class AuthMiddleware{
       
         $token = trim(explode("Bearer", $header)[1]);
         try{
+            //var_dump("hola");
             AuthJWT::VerificarToken($token);
-
+            
             
             $data = AuthJWT::ObtenerData($token);
-      
             if ($data->sector === 'bartender')
             {   
                 //aca propaga el middleware a otro
                 $request->datosToken= $data;
-
+                
                 $response = $handler->handle($request);
             } 
             else

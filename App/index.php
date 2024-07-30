@@ -83,6 +83,9 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
     
     $app->get('/mesa/facturoEntreFechas',\ControllerPedido::class . ':facturacionEntreFechas')->add(\AuthMiddleware::class . ':verificarToken')
     ->add(\AuthMiddleware::class . ':verificarRolSocio');
+
+    $app->get('/mesa/servidoConDemora',\ControllerPedido::class . ':verPedidosConDemora')->add(\AuthMiddleware::class . ':verificarToken')
+    ->add(\AuthMiddleware::class . ':verificarRolSocio');
     
 
     $app->group('/pedido/listar',function(RouteCollectorProxy $group){
@@ -130,34 +133,35 @@ $app->group('/pedido',function(RouteCollectorProxy $group){
       ->add(\AuthMiddleware::class . ':verificarToken')
       ->add(\AuthMiddleware::class . ':verificarRolSocio');
       
-    $app->add(\LogMiddleware::class);
-
-    $app->group('/archivoProductos', function (RouteCollectorProxy $group){
-
-        $group->post('/importar-csv[/]', \ControllerProducto::class . ':ImportarTabla');
-        $group->get('/guardar[/]', \ControllerProducto::class . ':ExportarTabla'); 
-      })
-      ->add(\AuthMiddleware::class . ':verificarToken')
-      ->add(\AuthMiddleware::class . ':verificarRolSocio');
-
-      $app->get('/download', function($request, $response, $args) {
-  
-        $rutaCompleta = FpdfCreator::CrearPDF();
+      
+      $app->group('/archivoProductos', function (RouteCollectorProxy $group){
+          
+          $group->post('/importar-csv[/]', \ControllerProducto::class . ':ImportarTabla');
+          $group->get('/guardar[/]', \ControllerProducto::class . ':ExportarTabla'); 
+        })
+        ->add(\AuthMiddleware::class . ':verificarToken')
+        ->add(\AuthMiddleware::class . ':verificarRolSocio');
         
-        $filename = $rutaCompleta;  
-      
-        header('Pragma: public');
-        header('Expires: 0');
-        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="'. basename($filename) .'.pdf"');
-        header('Content-Transfer-Encoding: binary');
-        header('Cache-Control: max-age=0');
-        readfile($filename);
-        return true;
-      })->add(\AuthMiddleware::class . ':verificarToken')
-      ->add(\AuthMiddleware::class . ':verificarRolSocio');
-      
-
-      $app->run();
+        $app->get('/download', function($request, $response, $args) {
+            
+            $rutaCompleta = FpdfCreator::CrearPDF();
+            
+            $filename = $rutaCompleta;  
+            
+            header('Pragma: public');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="'. basename($filename) .'.pdf"');
+            header('Content-Transfer-Encoding: binary');
+            header('Cache-Control: max-age=0');
+            readfile($filename);
+            return true;
+        })->add(\AuthMiddleware::class . ':verificarToken')
+        ->add(\AuthMiddleware::class . ':verificarRolSocio');
+        
+        
+        $app->add(\LogMiddleware::class);
+        $app->run();
+        

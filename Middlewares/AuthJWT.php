@@ -30,6 +30,7 @@ class AuthJWT
                 self::$claveSecreta,
                 self::$tipoEncriptacion
             );
+           // var_dump($decodificado);
         } catch (Exception $e) {
             throw $e;
         }

@@ -225,9 +225,9 @@ Class Pedido{
             $objDataBase = DB::obtenerInstancia();
 
             $consulta = $objDataBase->prepararConsulta(
-                "SELECT mesa, SUM(cuenta) AS valor_total
+                "SELECT mesa, SUM(total) AS valor_total
                 FROM cliente
-                WHERE fechaCobro BETWEEN :fecha_inicio AND :fecha_fin
+                WHERE fecha_facturacion BETWEEN :fecha_inicio AND :fecha_fin
                 GROUP BY mesa
                 ORDER BY valor_total DESC"
             );
@@ -296,14 +296,11 @@ Class Pedido{
 
                 $horaActual = new DateTime('now', $timezone);
 
-                // Convertir la fecha de modificación más reciente a un objeto DateTime en la misma zona horaria
                 $fechaModificacion = new DateTime($fechaModificacionReciente, $timezone);
 
-                // Sumar el tiempo estimado a la hora de modificación
+
                 $fechaModificacion->add(new DateInterval("PT{$tiempoMaximoEstimado}M"));
 
-                var_dump("actual",$horaActual);
-                var_dump("anterior",$fechaModificacion);
                 if ($horaActual > $fechaModificacion) {
                     echo "El pedido se servirá con demora.";
                     return true;
@@ -312,6 +309,13 @@ Class Pedido{
                     return false;
                 }
             }
+        }
+
+        public static function verPedidosConDemora(){
+            $objDataBase = DB::obtenerInstancia();
+            $consulta = $objDataBase->prepararConsulta("SELECT * FROM pedido WHERE estado='servido con demora'");
+            $consulta->execute();
+            return $consulta->fetchAll(PDO::FETCH_ASSOC);
         }
     
     }
